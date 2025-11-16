@@ -13,6 +13,7 @@ function Account() {
   useAuth();
   const [date, setDate]: any = useState();
   const [list, setList]: any[] = useState([]);
+  const [totalBalance, setTotalBalance] = useState(0);
   const getList = async () => {
     let response = await axiosClient.get("/accounts", {
       params: {
@@ -24,6 +25,11 @@ function Account() {
   useEffect(() => {
     getList();
   }, [date]);
+
+  useEffect(() => {
+    let total = list.reduce((sum: number, account: any) => sum + (account.balance || 0), 0);
+    setTotalBalance(total);
+  }, [list]);
 
   const columns = [
     {
@@ -38,9 +44,10 @@ function Account() {
       key: "account_id",
     },
     {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
+      title: "Balance",
+      dataIndex: "balance",
+      key: "balance",
+      render: (value: number) => value ? `$${(value / 100)?.toLocaleString("en-US", { minimumFractionDigits: 0 })}` : '',
     },
     {
       title: "Profit",
@@ -60,6 +67,9 @@ function Account() {
             onChange={(value) => setDate(value ? value.format("YYYY-MM-DD") : null)}
             format="YYYY-MM-DD"
           />
+        </div>
+        <div className="clearfix">
+          <div className="float-left">Tổng số tiền: ${ (totalBalance / 100).toLocaleString("en-US", { minimumFractionDigits: 0 })} </div>
         </div>
         <Table columns={columns} dataSource={list} rowKey="id"  />
         {/* <table className="table table-bordered">
