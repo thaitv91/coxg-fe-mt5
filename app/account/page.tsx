@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import useAuth from "../hooks/useAuth";
 dayjs.extend(utc);
-import moment from "moment";
+import EditAccount from "../components/edit-account";
 
 function Account() {
   useAuth();
@@ -15,6 +15,8 @@ function Account() {
   const [endDate, setEndDate]: any = useState();
   const [id, setId]: any = useState();
   const [list, setList]: any[] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [showEditAccount, setShowEditAccount] = useState(false);
   const [totalBalance, setTotalBalance] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const getList = async () => {
@@ -51,6 +53,17 @@ function Account() {
       key: "account_id",
     },
     {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Phone",
+      dataIndex: "phone",
+      key: "phone",
+      render: (value: string) => (value ? <a target="_blank" href={`https://zalo.me/${value}`}>{value}</a> : ""),
+    },
+    {
       title: "Balance",
       dataIndex: "balance",
       key: "balance",
@@ -67,6 +80,25 @@ function Account() {
       dataIndex: "total_profit",
       key: "total_profit",
       render: (value: number) => `$${value?.toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+    },
+    {
+      title: "Actions",
+      dataIndex: "actions",
+      key: "actions",
+      width: 100,
+      textAlign: "center",
+      render: (_: any, record: any) => (
+        <div>
+          <button
+            className="btn btn-sm btn-primary mr-2"
+            onClick={() => {
+              setSelectedAccount(record);
+              setShowEditAccount(true);
+            }}>
+            Edit
+          </button>
+        </div>
+      ),
     },
   ];
 
@@ -101,35 +133,48 @@ function Account() {
             </div>
           </div>
           <div className="row">
-            <div className="col col-md-4 mb-2 mt-2">
+            <div className="col col-md-4">
               <Input
                 type="text"
                 value={id}
                 onChange={(e) => setId(e.target.value)}
-                placeholder="Tìm theo ID"
+                placeholder="Search by Account ID"
                 style={{ width: "100%", marginRight: 10 }}
               />
             </div>
-            <div className="col col-md-4 mb-2 mt-2">
+            <div className="col col-md-4">
               <DatePicker
                 value={date ? dayjs(date) : null}
                 onChange={(value) => setDate(value ? value.format("YYYY-MM-DD") : null)}
                 format="YYYY-MM-DD"
                 style={{ width: "100%" }}
-                placeholder="Chọn ngày bắt đầu"
+                placeholder="Select start date"
               />
             </div>
-            <div className="col col-md-4 mb-2 mt-2">
+            <div className="col col-md-4">
               <DatePicker
                 value={endDate ? dayjs(endDate) : null}
                 onChange={(value) => setEndDate(value ? value.format("YYYY-MM-DD") : null)}
                 format="YYYY-MM-DD"
                 style={{ width: "100%" }}
-                placeholder="Chọn ngày kết thúc"
+                placeholder="Select end date"
               />
             </div>
           </div>
           <Table columns={columns} dataSource={list} rowKey="id" scroll={{ x: "max-content" }} />
+
+          {/* EditAccount component can be added here */}
+          {showEditAccount && (
+            <EditAccount
+              show={showEditAccount}
+              account={selectedAccount}
+              onClose={() => setShowEditAccount(false)}
+              onUpdated={() => {
+                setShowEditAccount(false);
+                getList();
+              }}
+            />
+          )}
         </div>
       )}
     </div>
